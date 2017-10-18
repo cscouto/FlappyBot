@@ -40,6 +40,12 @@ class GameScene: SKScene {
         bird.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
         bird.run(makeBirdFlap)
         self.addChild(bird)
+        
+        let ground = SKNode()
+        ground.position = CGPoint(x: self.frame.midX, y: -self.frame.midY/2)
+        ground.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: self.frame.width, height: 1))
+        ground.physicsBody?.isDynamic = false
+        self.addChild(ground)
     }
     
     
