@@ -13,6 +13,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var bird = SKSpriteNode()
     var bg = SKSpriteNode()
     var scoreLabel = SKLabelNode()
+    var bestLabel = SKLabelNode()
     var score = 0
     var gameOverLabel = SKLabelNode()
     var timer = Timer()
@@ -45,7 +46,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pipe1.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
         pipe1.zPosition = -1
         self.addChild(pipe1)
-        let pipe2Texture = SKTexture(imageNamed: "pipe2.png")
+        let pipe2Texture = SKTexture(imageNamed: "pipe2")
         let pipe2 = SKSpriteNode(texture: pipe2Texture)
         pipe2.position = CGPoint(x: self.frame.midX + self.frame.width, y: self.frame.midY - pipe2Texture.size().height / 2 - gapHeight / 2 + pipeOffset)
         pipe2.run(moveAndRemovePipes)
@@ -71,22 +72,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if gameOver == false {
             if contact.bodyA.categoryBitMask == ColliderType.Gap.rawValue || contact.bodyB.categoryBitMask == ColliderType.Gap.rawValue {
                 score += 1
-                scoreLabel.text = String(score)
+                scoreLabel.fontName = "FlappyBirdy"
+                scoreLabel.fontColor = UIColor.yellow
+                scoreLabel.text = score.description
             } else {
                 self.speed = 0
                 gameOver = true
                 timer.invalidate()
-                gameOverLabel.fontName = "Helvetica"
-                gameOverLabel.fontSize = 30
+                gameOverLabel.fontName = "FlappyBirdy"
+                gameOverLabel.fontSize = 60
+                gameOverLabel.fontColor = UIColor.yellow
                 gameOverLabel.text = "Game Over! Tap to play again."
                 gameOverLabel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
                 self.addChild(gameOverLabel)
+                
+                if let savedValue = UserDefaults.standard.string(forKey: "score") {
+                    let value = scoreLabel.text?.replacingOccurrences(of: "Best: ", with: "")
+                    let scoreValue = Int(value!)!
+                    let intValue = Int(savedValue)!
+                    if scoreValue > intValue {
+                        bestLabel.text = "Best: \(scoreValue)"
+                        UserDefaults.standard.set(scoreValue.description, forKey: "score")
+                    }
+                }else{
+                    let value = scoreLabel.text?.replacingOccurrences(of: "Best: ", with: "")
+                    UserDefaults.standard.set(value, forKey: "score")
+                }
             }
         }
     }
     
     override func didMove(to view: SKView) {
         self.physicsWorld.contactDelegate = self
+        
         setupGame()
     }
     
@@ -129,11 +147,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ground.physicsBody!.categoryBitMask = ColliderType.Object.rawValue
         ground.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
         self.addChild(ground)
-        scoreLabel.fontName = "Helvetica"
-        scoreLabel.fontSize = 60
+        scoreLabel.fontName = "FlappyBirdy"
+        scoreLabel.fontSize = 80
         scoreLabel.text = "0"
-        scoreLabel.position = CGPoint(x: self.frame.midX, y: self.frame.height / 2 - 70)
+        scoreLabel.fontColor = UIColor.yellow
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            scoreLabel.position = CGPoint(x: self.view!.frame.width - 500, y: self.view!.frame.height / 2 - 80)
+        }else{
+            scoreLabel.position = CGPoint(x: self.frame.width - 500, y: self.frame.height / 2 - 80)
+        }
         self.addChild(scoreLabel)
+        
+        bestLabel.fontName = "FlappyBirdy"
+        bestLabel.fontSize = 80
+        if let savedValue = UserDefaults.standard.string(forKey: "score") {
+            bestLabel.text = "Best: \(savedValue)"
+        }else{
+            bestLabel.text = "Best: 0"
+        }
+        bestLabel.fontColor = UIColor.yellow
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            bestLabel.position = CGPoint(x: self.view!.frame.width - 500, y: -(self.view!.frame.height / 2) + 30 )
+        }else{
+            bestLabel.position = CGPoint(x: self.frame.width - 500, y: -(self.frame.height / 2) + 30 )
+        }
+        self.addChild(bestLabel)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -154,4 +192,3 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Called before each frame is rendered
     }
 }
-
